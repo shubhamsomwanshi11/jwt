@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Online JWT tool</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma-rtl.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="An online tool to perform JWT verification, decoding, or generation. RSA keys and algorithms only." />
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105867635-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'UA-105867635-2');
+  </script>
+</head>
+
+<!-- ======================================================= -->
+
+<body style="position: relative;text-align: center;background: linear-gradient(60deg, rgba(84, 58, 183, 1) 0%, rgba(0, 172, 193, 1) 100%);color: white;">
+  <div class='container mb-6'>
+    <h1 class="is-size-1 has-text-weight-bold has-text-centered mt-5 mb-5 ">JWT Decoder, Verifier, Generator, Decryptor</h1>
+
+    <div class='panel-group'>
+      <div class='panel panel-left card has-text-left' id='panel_encoded'>
+        <p>Encoded Token <span class='length'></span>
+          <button type="button" class="btn btn-outline-secondary btn-md btn-copy" data-target="encodedjwt"
+            title='copy to clipboard'>
+            <span class="oi oi-clipboard"></span>
+          </button>
+        </p>
+        <textarea rows=12 cols=34 id='encodedjwt' class='rawvalue'></textarea>
+      </div>
+
+      <div class='panel panel-center card mx-3' id='panel_buttons'>
+        <select class="form-control mt-3 form-control-sm sel-variant" id='sel-variant'>
+          <option value='Signed'>Signed</option>
+          <option value='Encrypted'>Encrypted</option>
+        </select>
+        <select class="form-control form-control-sm sel-alg" title='alg' id='sel-alg'>
+          <!-- options will be dynamically added -->
+        </select>
+        <select class="form-control form-control-sm sel-enc" title='enc' id='sel-enc'>
+          <!-- this select will show only with variant = encrypted, options will be added at runtime -->
+        </select>
+        <button type="button" class="btn btn-outline-secondary btn-lg btn-encode" title='encode and sign a JWT'>
+          <span class="oi oi-arrow-thick-left"></span>
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-lg btn-decode" title='decode a JWT'>
+          <span class="oi oi-arrow-thick-right"></span>
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-lg btn-verify"
+          title='verify the encoded JWT with the given public key'>
+          <span class="oi oi-check"></span>
+        </button>
+        <div style='font-size:60%; margin-top:20px;' title='these apply only when generating JWT' class="is-size-6">overrides:</div>
+        <div style='font-size:60%; margin-bottom:6px;'>
+          <span class="is-size-6 pb-5">exp:</span>
+          <select class="form-control form-control-sm sel-expiry" id='sel-expiry'
+            title='override expiry; used only when encoding and signing.' style='margin-top:6px;'>
+            <option value='do nothing' >Do nothing</option>
+            <option value='no expiry'>No expiry</option>
+            <option value='10 seconds'>10 seconds</option>
+            <option value='60 seconds'>60 seconds</option>
+            <option value='5 minutes'>5 minutes</option>
+            <option value='10 minutes'>10 minutes</option>
+            <option value='30 minutes'>30 minutes</option>
+            <option value='60 minutes'>60 minutes</option>
+          </select>
+        </div>
+        <div style='font-size:60%; margin-right:6px;'>
+          <span class="is-size-6 pb-5">iat:</span>
+          <input id='chk-iat' type='checkbox' />
+        </div>
+        <div style='font-size:60%; margin-right:6px;'>
+          <span class="is-size-6 pb-5">typ:</span>
+          <input id='chk-typ' type='checkbox' />
+        </div>
+      </div>
+
+      <div class='panel panel-right clearfix card has-text-left' id='panel_decoded'>
+        <div id='header'>
+          <p>Decoded Header <span class='length'></span>
+            <button type="button" title="copy to clipboard" class="btn btn-outline-secondary btn-md btn-copy"
+              data-target="token-decoded-header" title="copy to clipboard">
+              <span class="oi oi-clipboard"></span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-md btn-newheader" title='generate a new header'>
+              <span class="oi oi-reload"></span>
+            </button>
+          </p>
+          <textarea rows=12 cols=34 id='token-decoded-header' class='jwt-header'></textarea>
+        </div>
+        <div id='payload'>
+          <p>Decoded Payload <span class='length'></span>
+            <button type="button" title="copy to clipboard" class="btn btn-outline-secondary btn-md btn-copy"
+              data-target="token-decoded-payload" title="copy to clipboard">
+              <span class="oi oi-clipboard"></span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-md btn-newpayload"
+              title='generate a new payload'>
+              <span class="oi oi-reload"></span>
+            </button>
+          </p>
+          <textarea rows=12 cols=34 id='token-decoded-payload' class='jwt-payload'></textarea>
+        </div>
+        <div id='privatekey' title='paste in your private key, it does not leave your browser'>
+          <p>Private Key
+            <button type="button" class="btn btn-outline-secondary btn-md btn-copy" data-target="ta_privatekey"
+              title="copy to clipboard">
+              <span class="oi oi-clipboard"></span>
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary btn-md btn-newkey" data-target="dummy"
+              title='generate a new keypair'>
+              <span class="oi oi-reload"></span>
+            </button>
+
+          </p>
+          <textarea rows=12 cols=34 id='ta_privatekey'></textarea>
+        </div>
+        <div id='publickey'>
+          <p><span id='publickey-label'>Public Key (PEM or JWKS)</span>
+            <button type="button" title="copy to clipboard" class="btn btn-outline-secondary btn-md btn-copy"
+              data-target="ta_publickey" title="copy to clipboard">
+              <span class="oi oi-clipboard"></span>
+            </button>
+          </p>
+          <textarea rows=12 cols=34 id='ta_publickey'></textarea>
+        </div>
+        <div id='directkey'>
+          <p>Direct Key <span class='length'></span>
+            <button type="button" title="copy to clipboard" class="btn btn-outline-secondary btn-md btn-copy"
+              data-target="ta_directkey" title="copy to clipboard">
+              <span class="oi oi-clipboard"></span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-md btn-newkey" data-target="dummy"
+              title='generate a new random key'>
+              <span class="oi oi-reload"></span>
+            </button>
+          </p>
+          <input type='text' id='ta_directkey' class='ta-key' data-coding='sel-dirkey-coding'
+            value='Key-Must-Be-16-or-32-or-64-bytes-exactly' spellcheck="false">
+          <div>
+            <span>Key Encoding:</span>
+            <select id='sel-dirkey-coding' data-target='ta_directkey'
+              class="form-control form-control-sm sel-key-coding">
+              <option value='UTF-8'>UTF-8</option>
+              <option value='Hex'>Hex</option>
+              <option value='Base64'>Base64</option>
+            </select>
+          </div>
+        </div>
+        <div id='symmetrickey'>
+          <p>Symmetric Key <span class='length'></span>
+            <button type="button" title="copy to clipboard" class="btn btn-outline-secondary btn-md btn-copy"
+              data-target="ta_symmetrickey" title="copy to clipboard">
+              <span class="oi oi-clipboard"></span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-md btn-newkey" data-target="dummy"
+              title='generate a new random key'>
+              <span class="oi oi-reload"></span>
+            </button>
+          </p>
+          <input type='text' id='ta_symmetrickey' class='ta-key' data-coding='sel-symkey-coding'
+            value='Key-Must-Be-at-least-32-bytes-in-length!' spellcheck="false">
+          <div>
+            <span>Key Encoding:</span>
+            <select id='sel-symkey-coding' data-target='ta_symmetrickey'
+              class="form-control form-control-sm sel-key-coding">
+              <option value='UTF-8'>UTF-8</option>
+              <option value='Hex'>Hex</option>
+              <option value='Base64'>Base64</option>
+              <option value='PBKDF2'>PBKDF2</option>
+            </select>
+          </div>
+          <div id='pbkdf2_params'>
+            <div>
+              <span>iterations:</span>
+              <input type='number' id='ta_pbkdf2_iterations' value='10000'>
+            </div>
+            <div>
+              <span>salt:</span>
+              <input type='text' id='ta_pbkdf2_salt' data-coding='sel-symkey-pbkdf2-salt-coding' value='abcdefghijkl'>
+            </div>
+            <div>
+              <span>salt encoding:</span>
+              <select id='sel-symkey-pbkdf2-salt-coding' data-target='ta_pbkdf2_salt'
+                class="form-control form-control-sm sel-symkey-pbkdf2-salt-coding sel-key-coding">
+                <option value='UTF-8'>UTF-8</option>
+                <option value='Hex'>Hex</option>
+                <option value='Base64'>Base64</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="js/main.js" charset="utf-8"></script>
+</body>
+
+</html>
